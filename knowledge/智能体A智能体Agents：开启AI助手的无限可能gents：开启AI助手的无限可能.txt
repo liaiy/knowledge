@@ -1,0 +1,715 @@
+## 智能体A智能体Agents：开启AI助手的无限可能gents：开启AI助手的无限可能
+
+
+
+## 1.什么是Agents ?
+
+​    Agents 是一个具有智能功能的智能体，它使用 LLM 和工具来执行任务。
+
+​    Agents 核心思想是使用LLM来选择要采取的一系列动作。在链式结构中，一系列动作是硬编码的（在代码中）。 在 Agents 中，使用语言模型作为推理引擎来确定要采取的动作及其顺序。
+
+​    Agents 包括几个关键组件：
+
+| Agent  | 用于生成指令和执行动作的代理。     |
+| ------ | ---------------------------------- |
+| Tool   | 用于执行动作的函数。               |
+| Memory | 用于存储历史对话和生成的指令。     |
+| LLM    | 用于存储历史对话和生成的指令 LLM。 |
+
+## 2.Agents的简单示例
+
+
+
+​    ***使用Langchain库来构建一个能够回答问题的智能体，并利用通义大模型和SERPAPI搜索引擎工具来获取信息***
+
+
+
+###     2.1 **搭建工具**
+
+​    我们这里使用serpai来对搜索进行实现
+
+​    serpai是一个聚合搜索引擎，需要安装谷歌搜索包以及申请账号，免费但需要魔法，有一定的次数限制。
+
+> ​          [https://serpapi.com/manage-api-key](http://xn--https-rfaaaa//serpapi.com/manage-api-key)
+
+###     2.2 安装依赖
+
+```bash
+       pip install google-search-results
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+###     2.3 具体实现代码
+
+```python
+import os 
+# 设置环境变量，这是使用SERPAPI搜索引擎工具所需的API密钥
+os.environ["SERPAPI_API_KEY"] = '申请的serapikey'
+
+from langchain_community.llms.tongyi import Tongyi
+# 初始化通义大模型
+llm = Tongyi()
+
+from langchain.agents import load_tools
+from langchain.agents import initialize_agent
+from langchain.agents import AgentType
+
+# 加载工具，这里包括了搜索引擎（serpapi）和数学计算工具（llm-math）
+tools = load_tools(["serpapi","llm-math"], llm=llm)
+
+# 初始化智能体，这里使用的是零样本反应描述类型的智能体
+agent = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,  # 指定智能体类型
+    verbose=True,  # 设置为True以打印日志，可以看到智能体的思考过程
+)
+
+# 直接调用通义大模型来回答问题
+llm.invoke("请问2025年的美国总统是谁？他的年龄的除以2是多少?")
+
+# 运行智能体来回答问题，智能体会使用加载的工具来帮助回答
+agent.run("请问现任的美国总统是谁？他的年龄的除以2是多少?")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+###     2.4 运行结果
+
+>    **llm的结果**
+>
+> 
+>
+> ​      '截至2023年，我无法预测2024年美国总统选举的结果，因为这取决于选举结果。美国的总统选举通常在11月的第一个星期二举行，因此2024年的选举将在11月5日举行。\n\n关于年龄的问题，由于我不知道届时谁会当选，也无法提供当前可能候选人的具体年龄。但假设一位候选人当选时是50岁，那么他年龄除以2就是25。请记住，这只是一个例子，实际的年龄和结果需要根据未来的选举情况来确定。'
+
+>   **agent的思考过程（verbose=True）**
+>
+> \>Entering new AgentExecutor chain... 我需要找到现任美国总统的名字，然后计算他的年龄除以2的结果。这需要我使用搜索来获取当前总统的信息，然后用计算器来计算年龄。
+>
+> Action: Search Action
+>
+> Input: "current president of the United States"
+>
+> Observation: Joe Biden
+>
+> Thought:现在我知道了现任美国总统是乔·拜登（Joe Biden）。我需要搜索他的年龄。 Action: Search Action Input: "Joe Biden age" Observation: 81 years
+>
+> Thought:我找到了乔·拜登的年龄是81岁。现在我可以用计算器算出他年龄除以2的结果。 Action: Calculator Action Input: 81 / 2
+>
+> Observation: Answer: 40.5 Thought:我得到了结果，现任美国总统乔·拜登的年龄除以2是40.5。
+>
+> Final Answer: 现任美国总统乔·拜登（Joe Biden）的年龄除以2是40.5岁。
+>
+> \> Finished chain.
+
+> ​      **agent的运行结果**
+>
+>  '现任美国总统乔·拜登（Joe Biden）的年龄除以2是40.5岁。'
+
+###     2.5 `agent.run()` 方法和 `agent.invoke()`的区别
+
+> 在Langchain库中，`agent.run()` 方法和 `agent.invoke()` 方法的区别主要在于它们的使用场景和目的。
+>  \1. **agent.run()**:
+>    \- `agent.run()` 方法是智能体的主要接口，用于处理和回答用户的问题或执行任务。
+>    \- 当你调用 `agent.run()` 时，智能体会分析传入的问题，决定是否需要使用工具来获取更多信息，然后根据获取的信息生成回答。
+>    \- 这个方法通常用于完整的问答循环，包括问题理解、工具调用、信息整合和回答生成。
+>  \2. **agent.invoke()**:
+>    \- `agent.invoke()` 方法通常是在智能体内部使用，用于调用特定的工具来执行任务或获取信息。
+>    \- 当智能体决定需要使用工具时，它会调用 `agent.invoke()` 方法来执行工具的具体操作。
+>    \- 这个方法不是直接暴露给用户的接口，而是智能体在执行 `agent.run()` 方法时内部使用的。
+>  简而言之，`agent.run()` 是用户与智能体交互的入口点，它负责处理整个问题和回答的过程，而 `agent.invoke()` 是智能体内部用来调用具体工具的方法，用于辅助完成 `agent.run()` 所负责的任务。用户通常只与 `agent.run()` 方法交互，而 `agent.invoke()` 方法则是由智能体自身在需要时调用。
+>  
+
+###      **2.6 thought**    
+
+​    ***简单的说\***，***智能体提供了一个框架，使大型语言模型能够更加智能地使用外部资源和工具，从而在各种任务中提供更加强大和准确的功能。\***
+
+
+
+
+
+## 3.Agents 的类型
+
+| ZERO_SHOT_REACT_DESCRIPTION                 | 零样本反应描述           |
+| ------------------------------------------- | ------------------------ |
+| CHAT_ZERO_SHOT_REACT_DESCRIPTION            | 聊天零样本反应描述       |
+| CONVERSATIONAL_REACT_DESCRIPTION            | 会话反应描述             |
+| CHAT_CONVERSATIONAL_REACT_DESCRIPTION       | 聊天会话反应描述         |
+| STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION | 聊天结构化零样本反应描述 |
+| STRUCTURED_ZERO_SHOT_REACT_DESCRIPTION      | 结构化零样本反应描述     |
+
+###     3.1 ZERO_SHOT_REACT_DESCRIPTION
+
+###     在没有示例的情况下可以自主的进行对话的类型
+
+```python
+# 定义tools
+tools = load_tools(["serpapi","llm-math"],llm=llm)
+
+# 定义agent--（tools、agent、llm、memory）
+agent = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+)
+
+print(agent)
+print("------------------------")
+print(agent.agent.llm_chain.prompt.template)
+
+agent.invoke("现在美国总统是谁？他的年龄除以2是多少？")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+###     3.2 CHAT_ZERO_SHOT_REACT_DESCRIPTION
+
+###     零样本增强式生成，即在没有示例的情况下可以自主的进行对话的类型
+
+```python
+tools = load_tools(["serpapi","llm-math"],llm=llm)
+agent = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+)
+print(agent)
+print("------------------------")
+print(agent.agent.llm_chain.prompt.messages[0].prompt.template)
+print("------------------------")
+agent.invoke("现在美国总统是谁？他的年龄除以2是多少？")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+> 相较于ZERO_SHOT_REACT_DESCRIPTION，此类型更侧重于对话和交互式环境。它不仅能够生成反应描述，还能够生成自然语言回复来与用户进行交互。
+
+###      3.3 CONVERSATIONAL_REACT_DESCRIPTION
+
+###     一个对话型的agent，这个agent要求与memory一起使用
+
+```python
+from langchain.memory import ConversationBufferMemory
+#记忆组件
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+)
+
+# 定义tool
+tools = load_tools(["serpapi","llm-math"],llm=llm)
+
+# 定义agent
+agent = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION,
+    memory=memory,#记忆组件
+    verbose=True,
+)
+print(agent)
+print(agent.agent.llm_chain.prompt.template)
+
+
+agent.run("我是张三，今年18岁，性别女，现在在深圳工作，工作年限1年，月薪5000元")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+```python
+agent.run("我的名字是什么?")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+```python
+agent.run("有什么好吃的泰国菜可以推荐给我吗?")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+###      3.4 CHAT_CONVERSATIONAL_REACT_DESCRIPTION 使用了chatmodel
+
+```python
+from langchain.memory import ConversationBufferMemory
+#记忆组件
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True,
+)
+
+tools = load_tools(["serpapi","llm-math"],llm=llm)
+
+
+agent = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.CHAT_CONVERSATIONAL_REACT_DESCRIPTION,
+    memory=memory,#记忆组件
+    verbose=True,
+)
+print(agent)
+print("1 ------------------------")
+print(len(agent.agent.llm_chain.prompt.messages))
+print("2 ------------------------")
+print(agent.agent.llm_chain.prompt.messages[0].prompt.template)
+print("3 ------------------------")
+print(agent.agent.llm_chain.prompt.messages[1])
+print("4 ------------------------")
+print(agent.agent.llm_chain.prompt.messages[2].prompt.template)
+print("5 ------------------------")
+print(agent.agent.llm_chain.prompt.messages[3])
+agent.run("有什么好吃的泰国菜可以推荐给我吗?用中文回答")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+### 3.5 STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION
+
+### 对输出做了结构化处理
+
+
+
+```python
+from langchain.memory import ConversationBufferMemory
+#记忆组件
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True,
+)
+
+## 定义tool
+tools = load_tools(["serpapi","llm-math"],llm=llm)
+
+# 定义agent
+agent = initialize_agent(
+    tools,
+    llm,
+    agent=AgentType.STRUCTURED_CHAT_ZERO_SHOT_REACT_DESCRIPTION, #agent类型 
+    memory=memory,#记忆组件
+    handle_parsing_errors=True,
+    verbose=True,
+    
+)
+print(agent)
+print(agent.agent.llm_chain.prompt.messages[0].prompt.template)
+print(agent.agent.llm_chain.prompt.messages[1].prompt.template)
+
+agent.run("有什么好吃的泰国菜可以推荐给我吗?用中文回答")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+### ***对于其他类型的agent，这里不做赘述。***
+
+
+
+## 4 Tools 自定义工具
+
+***langchain预制了大量的tools，基本这些工具能满足大部分需求。 \**\*https://python.langchain.com.cn/docs/modules/agents/tools/\**\****
+
+**添加预制工具的方法很简单**
+
+> from langchain.agents import load_tools
+>
+> tool_names = [...]
+>
+> tools = load_tools(tool_names) #使用load方法
+>
+> 
+>
+> \#有些tool需要单独设置llm
+>
+> from langchain.agents import load_tools
+>
+> tool_names = [...]
+>
+> llm = ...
+>
+> tools = load_tools(tool_names, llm=llm) #在load的时候指定llm
+
+**SerpAPI在上面的例子中已经做了简单示例**
+
+### ***下面是*** 简单的一种Dall-E***使用方式，***
+
+### Dall-E是openai出品的文到图AI大模型，需要设置apikey
+
+```bash
+pip install opencv-python scikit-image
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+```bash
+from langchain.agents import initialize_agent, load_tools
+
+import os 
+os.environ["openai_api_key"] = ''
+
+tools = load_tools(["dalle-image-generator"])
+
+agent = initialize_agent(
+    tools, 
+    llm, 
+    agent="zero-shot-react-description",
+    verbose=True
+)
+
+agent.run("Create an image of a halloween night at a haunted museum")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+## 5 自定义agents
+
+```python
+from langchain.agents import Tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
+from langchain.prompts import StringPromptTemplate
+from langchain import SerpAPIWrapper, LLMChain
+from typing import List, Union
+from langchain.schema import AgentAction, AgentFinish, OutputParserException
+from langchain_community.llms.tongyi import Tongyi
+import re
+import os
+
+class MyAgentTool:
+    
+    def __init__(self) -> None:    
+        os.environ["SERPAPI_API_KEY"] = ''    
+        self.serpapi = SerpAPIWrapper()
+        
+    def tools(self):
+        return [
+            Tool(
+                name="search",
+                description="适用于当你需要回答关于当前事件的问题时",
+                func=self.serpapi.run,
+            )
+        ]
+s = MyAgentTool()
+s.serpapi.run("python")
+
+from typing import Any
+
+
+class MyAgent:
+    llm = None
+    tools = None
+    def __init__(self) -> None:
+        #agent的提示词，用来描述agent的功能
+        self.template =  """尽你最大可能回答下面问题，你将始终用中文回答. 你在必要时可以使用下面这些工具:
+                    {tools}
+                    Use the following format:
+                    Question: the input question you must answer
+                    Thought: you should always think about what to do
+                    Action: the action to take, should be one of [{tool_names}]
+                    Action Input: the input to the action
+                    Observation: the result of the action
+                    ... (this Thought/Action/Action Input/Observation can repeat N times)
+                    Thought: I now know the final answer
+                    Final Answer: the final answer to the original input question
+                    Begin! 记住使用中文回答，如果你使用英文回答将回遭到惩罚.
+                    Question: {input}
+                    {agent_scratchpad}"""
+        #定义一个openai的llm
+        self.llm = Tongyi()
+        #工具列表
+        self.tools = self.MyAgentTool().tools()
+        #agent的prompt
+        self.prompt = self.MyTemplate(
+            template=self.template,
+            tools=self.tools,
+            #输入变量和中间变量
+            input_variables=["input", "intermediate_steps"],
+        )
+
+        #定义一个LLMChain
+        self.llm_chain = LLMChain(
+            llm=self.llm,
+            prompt = self.prompt
+        )
+        #工具名称列表
+        self.toolnames = [tool.name for tool in self.tools]
+        #定义一个agent
+        self.agent = LLMSingleActionAgent(
+            llm_chain=self.llm_chain,
+            allowed_tools=self.toolnames,
+            output_parser=self.MyOutputParser(),
+            
+            stop=["\nObservation:"],
+        )
+    
+    #运行agent
+    def run(self, input: str) -> str:
+        #创建一个agent执行器
+        agent_executor = AgentExecutor.from_agent_and_tools(
+            agent=self.agent, 
+            tools=self.tools, 
+            handle_parsing_errors=True,
+            verbose=True
+        )
+        agent_executor.run(input=input)
+
+    #自定义工具类
+    class MyAgentTool:
+        def __init__(self) -> None:
+            os.environ["SERPAPI_API_KEY"] = ''    
+            self.serpapi = SerpAPIWrapper()
+            
+        def tools(self):
+            return [
+                Tool(
+                    name="search",
+                    description="适用于当你需要回答关于当前事件的问题时",
+                    func=self.serpapi.run,
+                )
+            ]
+    
+
+    #自定义模版渲染类
+    class MyTemplate(StringPromptTemplate):
+        #渲染模版
+        template: str
+        #需要用到的工具
+        tools:List[Tool]
+
+        #格式化函数
+        def format(self, **kwargs: Any) -> str:
+            #获取中间步骤
+            intermediate_steps = kwargs.pop("intermediate_steps")
+            thoughts = ""
+            for action, observation in intermediate_steps:
+                thoughts += action.log
+                thoughts += f"\nObservation: {observation}\nThought: "
+            #将agent_scratchpad设置为该值
+            kwargs["agent_scratchpad"] = thoughts
+            # 从提供的工具列表中创建一个名为tools的变量
+            kwargs["tools"] = "\n".join([f"{tool.name}: {tool.description}" for tool in self.tools])
+            #创建一个提供的工具名称列表
+            kwargs["tool_names"] = ", ".join([tool.name for tool in self.tools])
+            return self.template.format(**kwargs)
+
+
+    #自定义输出解析类
+    class MyOutputParser(AgentOutputParser):
+        #解析函数
+        def parse(self, output: str) -> Union[AgentAction, AgentFinish]:
+            #检查agent是否应该完成
+            if "Final Answer:" in output:
+                return AgentFinish(
+                # 返回值通常始终是一个具有单个 `output` 键的字典。
+                # It is not recommended to try anything else at the moment :)
+                return_values={"output": output.split("Final Answer:")[-1].strip()},
+                log=output,
+                )
+            #用正则解析出动作和动作输入
+            regex = r"Action\s*\d*\s*:(.*?)\nAction\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
+            match = re.search(regex, output, re.DOTALL)
+            #如果没有匹配到则抛出异常
+            if not match:
+                raise OutputParserException(f"Could not parse LLM output: `{output}`")
+            action = match.group(1).strip()
+            action_input = match.group(2)
+            # 返回操作和操作输入
+            return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=output)
+
+myagent = MyAgent()
+myagent.run("请问现任的美国总统是谁？他的年龄的除以2是多少?")
+    
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+## 6 案例
+
+```python
+from langchain.agents import Tool, tool, AgentExecutor, LLMSingleActionAgent, AgentOutputParser
+from langchain.prompts import StringPromptTemplate
+from langchain import SerpAPIWrapper, LLMChain
+from typing import List, Union
+from langchain.schema import AgentAction, AgentFinish, OutputParserException
+from langchain_community.llms.tongyi import Tongyi
+from langchain_community.embeddings.dashscope import DashScopeEmbeddings
+# 引入向量化的类
+from langchain_community.vectorstores import Chroma
+import re
+import os
+
+from typing import Any
+
+#自定义工具类
+class MyAgentTool:
+    def __init__(self) -> None:
+        self.db = Chroma(embedding_function=DashScopeEmbeddings(),
+                          persist_directory="./chroma")
+        
+    def tools(self):
+        return [
+            Tool(
+                name="kg_search",
+                description="当你需要回答2024年NBA冠军球队的问题时使用",
+                func=self.search
+            )
+        ]
+    
+    def search(self, query: str) -> str:
+        return self.db.similarity_search(query,k=2)
+    
+    def getdb(self):
+        return self.db.__len__()
+    
+#可用工具
+@tool
+def kgg_search(query: str): 
+    """当你需要回答2024年NBA冠军球队的问题时才会使用这个工具。"""
+    db = Chroma(embedding_function=DashScopeEmbeddings(),persist_directory="./chroma")
+    return db.similarity_search(query,k=2)
+
+tool_list = [kgg_search]
+    
+
+class MyAgent:
+    llm = None
+    tools = None
+    def __init__(self,llm,tools) -> None:
+        #agent的提示词，用来描述agent的功能
+        self.template =  """尽你最大可能回答下面问题，你将始终用中文回答. 你在必要时可以使用下面这些工具:
+                    {tools}
+                    使用下面的格式回答问题:
+                    问题: 输入的问题
+                    分析: 你对问题的分析，决定是否使用工具
+                    动作: 使用工具，工具名称 [{tool_names}]
+                    输入: {input}
+                    观察: 动作名称
+                    ... 
+                    分析: 我现在知道答案了
+                    答案: 这是最终的答案
+                    记住使用中文回答，如果你使用英文回答将回遭到惩罚.
+                    问题: {input}
+                    {agent_scratchpad}"""
+                    
+        #定义一个openai的llm
+        self.llm = llm
+        #工具列表
+        self.tools = tools
+        #agent的prompt
+        self.prompt = self.MyTemplate(
+            template=self.template,
+            tools=self.tools,
+            #输入变量和中间变量
+            input_variables=["input", "intermediate_steps"],
+        )
+
+        #定义一个LLMChain
+        self.llm_chain = LLMChain(
+            llm=self.llm,
+            prompt = self.prompt
+        )
+        #工具名称列表
+        self.toolnames = [tool.name for tool in self.tools]
+        #定义一个agent
+        self.agent = LLMSingleActionAgent(
+            llm_chain=self.llm_chain,
+            allowed_tools=self.toolnames,
+            output_parser=self.MyOutputParser(),
+            
+            stop=["\n观察:"],
+        )
+    
+    #运行agent
+    def run(self, input: str) -> str:
+        #创建一个agent执行器
+        agent_executor = AgentExecutor.from_agent_and_tools(
+            agent=self.agent, 
+            tools=self.tools, 
+            handle_parsing_errors=True,
+            verbose=True
+        )
+        # agent_executor = AgentExecutor(agent=self.agent, tools=self.tools, verbose=True,handle_parsing_errors=True)
+        agent_executor.run(input=input)
+
+    
+
+    #自定义模版渲染类
+    class MyTemplate(StringPromptTemplate):
+        #渲染模版
+        template: str
+        #需要用到的工具
+        tools:List[Tool]
+
+        #格式化函数
+        def format(self, **kwargs: Any) -> str:
+            #获取中间步骤
+            intermediate_steps = kwargs.pop("intermediate_steps")
+            thoughts = ""
+            for action, observation in intermediate_steps:
+                thoughts += action.log
+                thoughts += f"\n观察: {observation}\n想法: "
+            #将agent_scratchpad设置为该值
+            kwargs["agent_scratchpad"] = thoughts
+            # 从提供的工具列表中创建一个名为tools的变量
+            kwargs["tools"] = "\n".join([f"{tool.name}: {tool.description}" for tool in self.tools])
+            #创建一个提供的工具名称列表
+            kwargs["tool_names"] = ", ".join([tool.name for tool in self.tools])
+            prompt_ret = self.template.format(**kwargs)
+            return prompt_ret
+
+
+    #自定义输出解析类
+    class MyOutputParser(AgentOutputParser):
+        #解析函数
+        def parse(self, output: str) -> Union[AgentAction, AgentFinish]:
+            #检查agent是否应该完成
+            if "答案:" in output:
+                return AgentFinish(
+                # 返回值通常始终是一个具有单个 `output` 键的字典。
+                # It is not recommended to try anything else at the moment :)
+                return_values={"output": output.split("答案:")[-1].strip()},
+                log=output,
+                )
+            #用正则解析出动作和动作输入
+            regex = r"动作\s*\d*\s*:(.*?)\n输入\s*\d*\s*:[\s]*(.*)"
+            match = re.search(regex, output, re.DOTALL)
+            #如果没有匹配到则抛出异常
+            if not match:
+                raise OutputParserException(f"Could not parse LLM output: `{output}`")
+            action = match.group(1).strip()
+            action_input = match.group(2)
+            # 返回操作和操作输入
+            return AgentAction(tool=action, tool_input=action_input.strip(" ").strip('"'), log=output)
+
+myagent = MyAgent(Tongyi(),tool_list)
+myagent.run("2024年NBA冠军球队是哪只?")
+
+# tool = MyAgentTool()
+# tool.search("2024年NBA冠军球队是哪只")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+```python
+from langchain.agents import initialize_agent, AgentType
+
+agent = initialize_agent(
+    MyAgentTool().tools(),
+    Tongyi(),
+    agent=AgentType.ZERO_SHOT_REACT_DESCRIPTION,
+    verbose=True,
+)
+# agent.run("2024年NBA冠军球队是哪只?")
+agent.invoke("2024年NBA冠军球队是哪只?")
+```
+
+![点击并拖拽以移动](data:image/gif;base64,R0lGODlhAQABAPABAP///wAAACH5BAEKAAAALAAAAAABAAEAAAICRAEAOw==)
+
+
+
+本文旨在介绍智能体Agents的概念、功能及应用前景，以增进读者对这一新兴技术的了解。文章中所提及的智能体Agents、大型语言模型（LLM）等均为当前科技领域的研究成果，相关数据和信息来源于公开资料。文章内容仅供参考，如有涉及具体技术细节，请以官方发布信息为准。
+
+本文所涉及的智能体Agents及相关技术，其应用和发展可能受到法律法规、伦理道德等多方面因素的影响。在实际应用中，应遵循相关法规和道德准则，确保技术的正当、合法使用。
+
+本文版权属于作者所有，未经许可，禁止转载、摘编、复制及建立镜像等任何形式的传播。如需转载，请务必联系作者获取授权。侵权必究。
+
+作者保留对本文内容的解释权。如有任何疑问或建议，请通过正规渠道与作者联系。感谢您的理解与支持！

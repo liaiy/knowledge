@@ -1,0 +1,84 @@
+day02早读任务：
+1. 变量名的命名规则？(7条)
+2. 掌握的数据类型转换有哪些？
+	将数据转换成整型  int(数据)
+	将数据转换成浮点型  float(数据)
+	将数据转换成字符串  str(数据)
+
+3.如何查询数据的类型及数据的布尔类型值？
+	查询数据的类型   type(数据)
+	查询数据的布尔类型值  bool(数据)
+
+day03早读任务：
+1. break和continue的异同点？
+
+day04早读任务：
+1. 字符串概念及索引切片语法？
+
+   ```
+   字符串是一系列字符组成的不可变序列容器。
+   索引语法：字符串[索引]
+   查找字符的所在位置。
+   
+   
+   ```
+
+## I'm  a rapper   
+
+```
+在Python中，字符串是一种不可变类型，提供了许多内置方法来进行操作。以下是一些常用的Python字符串方法及其功能：
+这只是部分常见的字符串方法，完整的列表请参考Python官方文档。
+索引与切片：•s[index]：获取字符串中指定位置的字符。•s[start:end]：切片，获取字符串从start到end（不包括end）之间的子串。
+2. 长度与计数：•len(s)：返回字符串的长度。•s.count(substring[, start[, end]])：返回substring在s中出现的次数，可指定开始和结束索引范围。
+3. 连接与拼接：•s1 + s2：将两个字符串拼接在一起。•''.join(list_of_strings)：使用空字符串作为分隔符，将字符串列表连接成一个单一的字符串。
+4. 查找与替换：•s.find(substring[, start[, end]])：返回substring在s中首次出现的位置索引，找不到则返回-1。•s.index(substring[, start[, end]])：同上，但找不到子串会抛出异常。•s.rfind(substring[, start[, end]]) 和 s.rindex(substring[, start[, end]])：从右向左查找。•s.replace(old, new[, maxreplace])：将字符串s中的old子串替换为new，maxreplace指定替换次数上限（默认全部替换）。
+5. 分割与拆分：•s.split(sep=None, maxsplit=-1)：根据sep分隔符将字符串分割成列表，默认以空格分隔。•s.partition(sep) 和 s.rpartition(sep)：将字符串分割成三部分，返回一个包含前缀、分隔符及后缀的元组。
+6. 大小写转换：•s.lower()：将字符串转换为小写。•s.upper()：将字符串转换为大写。•s.capitalize()：将字符串首字母转为大写，其余小写。•s.title()：将每个单词的首字母转为大写。
+7. 去除空白：•s.strip([chars])：移除字符串两端的指定字符，默认移除空白字符（空格、制表符、换行符等）。•s.lstrip([chars])：移除左侧的指定字符。•s.rstrip([chars])：移除右侧的指定字符。
+8. 格式化输出：•format() 方法或 f-string（从 Python 3.6 开始）用于格式化字符串。
+9. 其他方法：•s.startswith(prefix[, start[, end]])：检查字符串是否以prefix开头。•s.endswith(suffix[, start[, end]])：检查字符串是否以suffix结尾。•s.isdigit()、s.isalpha()、s.isalnum() 等：检查字符串是否由数字/字母/数字或字母组成。•s.encode(encoding='utf-8', errors='strict')：编码字符串为字节序列。•s.decode(encoding='utf-8', errors='strict')：解码字节序列到字符串。这只是部分常见的字符串方法，完整的列表请参考Python官方文档。
+```
+
+day05早读任务：
+1.字符串方法及作用？(至少5个)
+2.字符串输入函数及注意事项？
+	语法：input("提示语")
+	注意：input接收过来的数据一定是字符串类型的数据
+
+day06早读任务：
+1. 列表增加数据的三种方式及其作用？
+2.列表删除数据的方法及作用？
+3.字典循环遍历的三种方式？
+	遍历字典的键
+	for i in dict1.keys():
+		print(i)
+	遍历字典的值
+	for i in dict1.values():
+		print(i)
+	遍历字典的键值对
+	for i,j in dict1.items():
+		print(i,j)
+
+4. in 和 not in 的语法及作用？
+	in：
+	语法：元素 in 数据
+	作用：判断元素是否在数据内存在，如果在则返回True，否则返回False
+	not in：
+	语法：元素 not in 数据
+	作用：判断元素是否在数据内不存在，如果不在则返回True，否则返回False
+
+5.字典增加和修改的语法格式及特点？
+	语法：字典名[键] = 值
+	特点：有则修改，无则增加
+
+day07早读任务：
+1.python中的内置函数有哪些，及其作用？
+	sum():对序列进行求和
+	len():统计序列的长度、统计序列中数据的个数
+	max():返回参数的最大值
+	min():返回参数的最小值
+	del():删除指定数据
+
+2.python中可变不可变数据类型有哪些？
+	可变：列表、集合、字典
+	不可变：数字、字符串、元组
